@@ -1,0 +1,75 @@
+// src/styles/_variables.scss
+
+// Color Palette
+$color-primary: #3f51b5;
+$color-primary-dark: #303f9f;
+$color-primary-light: #c5cae9;
+
+$color-secondary: #f50057;
+$color-secondary-dark: #c51162;
+$color-secondary-light: #ff80ab;
+
+$color-error: #f44336;
+$color-warning: #ff9800;
+$color-info: #2196f3;
+$color-success: #4caf50;
+
+$color-text-primary: rgba(0, 0, 0, 0.87);
+$color-text-secondary: rgba(0, 0, 0, 0.6);
+$color-text-disabled: rgba(0, 0, 0, 0.38);
+$color-text-light: #ffffff;
+
+$color-background-default: #f4f6f8;
+$color-background-paper: #ffffff;
+
+$color-border: rgba(0, 0, 0, 0.12);
+
+// Typography
+$font-family-sans-serif:
+  -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+  'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+$font-family-monospace:
+  SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+$font-size-base: 1rem;
+$font-size-lg: $font-size-base * 1.25; // 20px
+$font-size-sm: $font-size-base * 0.875; // 14px
+$font-size-xs: $font-size-base * 0.75; // 12px
+
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+$line-height-base: 1.5;
+$line-height-heading: 1.2;
+
+// Spacing Units (based on an 8px grid system is common)
+$spacing-unit: 8px;
+$spacing-xs: $spacing-unit * 0.5; // 4px
+$spacing-sm: $spacing-unit; // 8px
+$spacing-md: $spacing-unit * 2; // 16px
+$spacing-lg: $spacing-unit * 3; // 24px
+$spacing-xl: $spacing-unit * 4; // 32px
+
+// Borders
+$border-radius-base: 4px;
+$border-radius-lg: 8px;
+$border-radius-sm: 2px;
+
+// Z-index values (example)
+$zindex-dropdown: 1000;
+$zindex-sticky: 1020;
+$zindex-modal: 1050;
+$zindex-tooltip: 1070;
+
+// Transitions
+$transition-base: all 0.2s ease-in-out;
+
+// Breakpoints for responsive design (example values)
+$breakpoint-xs: 0;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-xxl: 1400px;
