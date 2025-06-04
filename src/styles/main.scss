@@ -1,16 +1,23 @@
 // src/styles/main.scss
-// This will be our main SCSS file where we import other SCSS partials like variables, mixins, base styles, etc.
 
-body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background-color: #f4f6f8; // A light grey background for admin panels often looks good
-  }
-  
-  h1 {
-    color: #333;
-  }
+// 1. Variables (must be first if others depend on them)
+@import 'variables';
+
+// 2. Mixins (should come after variables if they use them, and before files that use mixins)
+@import 'mixins';
+
+// 3. Base and Resets
+@import 'base';
+
+// 4. Typography (global typography rules and text utilities)
+@import 'typography';
+
+// 5. Utility classes
+@import 'utils';
+
+// 6. Global styles for specific components (if any, not individual component styles)
+// Example: styles for all buttons if not handled by a component library or a dedicated button module
+// @import 'components/buttons';
+
+// At this point, our App.tsx `<h1>` might pick up styles from _typography.scss if we remove its inline style
+// And the body styling is now handled by _base.scss using variables.

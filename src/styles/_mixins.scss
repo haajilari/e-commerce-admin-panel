@@ -1,0 +1,85 @@
+// src/styles/_mixins.scss
+
+@mixin flex-center($direction: row) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: $direction;
+}
+
+// Responsive Breakpoints
+@mixin responsive-breakpoint($size) {
+  @if $size == xxl {
+    @media (min-width: $breakpoint-xxl) {
+      @content;
+    }
+  } @else if $size == xl {
+    @media (min-width: $breakpoint-xl) {
+      @content;
+    }
+  } @else if $size == lg {
+    @media (min-width: $breakpoint-lg) {
+      @content;
+    }
+  } @else if $size == md {
+    @media (min-width: $breakpoint-md) {
+      @content;
+    }
+  } @else if $size == sm {
+    @media (min-width: $breakpoint-sm) {
+      @content;
+    }
+  } @else if $size == xs-only {
+    @media (max-width: ($breakpoint-sm - 1px)) {
+      @content;
+    }
+  } @else {
+    @warn "Breakpoint `#{$size}` not recognized.";
+  }
+}
+// Text Truncation with Ellipsis
+@mixin truncate-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@mixin clearfix {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+// Button Base Styles (Example - could be more extensive)
+@mixin button-base(
+  $bg-color: $color-primary,
+  $text-color: $color-text-light,
+  $padding: $spacing-sm $spacing-md
+) {
+  display: inline-block;
+  padding: $padding;
+  background-color: $bg-color;
+  color: $text-color;
+  border: none;
+  border-radius: $border-radius-base;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: $transition-base;
+
+  &:hover {
+    background-color: darken($bg-color, 10%);
+  }
+
+  &:focus {
+    outline: none; // Or a custom focus style
+    box-shadow: 0 0 0 2px rgba($bg-color, 0.5);
+  }
+}
+
+// Square Size
+@mixin square($size) {
+  width: $size;
+  height: $size;
+}

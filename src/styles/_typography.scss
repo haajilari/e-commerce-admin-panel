@@ -1,0 +1,63 @@
+// src/styles/_typography.scss
+@import 'variables';
+
+h1,
+.h1 {
+  font-size: $font-size-base * 2.5;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-heading;
+  margin-top: $spacing-lg;
+  margin-bottom: $spacing-md;
+  color: $color-primary-dark;
+}
+
+h2,
+.h2 {
+  font-size: $font-size-base * 2;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-heading;
+  margin-top: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: $color-text-secondary;
+}
+// In some component's SCSS module or a global style file
+// Assuming _mixins.scss is globally available via main.scss import
+
+.some-element-that-needs-centering {
+  @include flex-center;
+  height: 200px; // For demonstration
+  background-color: $color-primary-light;
+}
+
+.page-title {
+  font-size: $font-size-lg;
+  // Apply responsive font size for smaller screens
+  @include responsive-breakpoint(sm) {
+    font-size: $font-size-base * 1.1; // Slightly smaller on small screens
+  }
+}
+
+.product-card-title {
+  @include truncate-text;
+  width: 200px; // Text will truncate if longer than this width
+}
+
+.custom-button {
+  @include button-base($bg-color: $color-secondary, $padding: $spacing-xs $spacing-sm);
+  font-weight: $font-weight-bold;
+}
+
+.avatar-icon {
+  @include square(40px);
+  border-radius: 50%; // Make it circular
+  @include flex-center; // Center content within the avatar if any
+  background-color: $color-primary;
+  color: $color-text-light;
+}
