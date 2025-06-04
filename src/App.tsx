@@ -1,51 +1,32 @@
 // src/App.tsx
-import Typography from './components/atoms/Typography/Typography' // Using path alias
+// ... other imports
+import PageHeader from './components/molecules/PageHeader/PageHeader' // Adjust path if needed
+import Button from '@mui/material/Button'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import Container from '@mui/material/Container'
+import Typography from './components/atoms/Typography/Typography'
 
 function App() {
   return (
-    <div style={{ padding: '20px' }}>
-      <Typography as="h1" variant="heading1">
-        E-commerce Admin Panel
-      </Typography>
+    // Make sure ThemeProvider and CssBaseline are wrapping your app in main.tsx or here
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <PageHeader
+        title="Products Management"
+        subtitle="Manage all your e-commerce products, inventory, and details here."
+        actions={
+          <Button variant="contained" startIcon={<AddCircleOutlineIcon />}>
+            Add New Product
+          </Button>
+        }
+      />
 
-      <Typography as="p" variant="body1" style={{ marginTop: '10px' }}>
-        Welcome to the admin panel. Here you can manage products, orders, and logistics.
-      </Typography>
+      {/* The rest of your page content would go here */}
+      <Typography variant="body1">Main content area for product listings, forms, etc.</Typography>
 
-      <Typography as="h2" variant="heading2" style={{ marginTop: '20px' }}>
-        Section Title
-      </Typography>
-
-      <Typography variant="body2" style={{ marginTop: '5px' }}>
-        This is some body text with a smaller font size.
-      </Typography>
-
-      <Typography variant="caption" style={{ marginTop: '15px', display: 'block' }}>
-        This is a caption. Useful for small notes or image captions.
-      </Typography>
-
-      <label htmlFor="someInput" style={{ marginTop: '15px', display: 'block' }}>
-        <Typography as="span" variant="label">
-          This is a label for an input field.
-        </Typography>
-      </label>
-
-      <button style={{ marginTop: '20px', padding: '10px 15px' }}>
-        <Typography variant="button" as="span">
-          Click Me
-        </Typography>
-      </button>
-
-      <Typography
-        as="div"
-        variant="body1"
-        className="custom-class-example" // Example of a custom class
-        onClick={() => alert('Typography clicked!')}
-        style={{ marginTop: '20px', cursor: 'pointer', color: 'blue' }}
-      >
-        This is a clickable div with body1 variant and a custom class.
-      </Typography>
-    </div>
+      {/* Example of another header without subtitle or actions */}
+      <PageHeader title="User Settings" sx={{ mt: 5 }} />
+      <Typography variant="body1">User profile and settings form...</Typography>
+    </Container>
   )
 }
 

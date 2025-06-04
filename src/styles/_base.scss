@@ -1,0 +1,48 @@
+// src/styles/_base.scss
+@import 'variables';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px; 
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: $font-family-sans-serif;
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-base;
+  color: $color-text-primary;
+  background-color: $color-background-default;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-primary-dark;
+    text-decoration: underline;
+  }
+}
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block;
+  max-width: 100%;
+}
