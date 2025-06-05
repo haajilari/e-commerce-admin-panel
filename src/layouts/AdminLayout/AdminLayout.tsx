@@ -22,17 +22,21 @@ import InventoryIcon from '@mui/icons-material/Inventory'
 import SettingsIcon from '@mui/icons-material/Settings'
 import useAuthStore from '../../features/authentication/store/authStore'
 import { logoutUser as apiLogoutUser } from '../../features/authentication/services/authService'
+import { AddCircleOutline } from '@mui/icons-material'
 
 const DRAWER_WIDTH = 240
 
 const navItems = [
   { text: 'Dashboard', path: '/', icon: <DashboardIcon /> },
-  { text: 'Products', path: '/products', icon: <ShoppingCartIcon /> },
-  { text: 'Inventory', path: '/inventory', icon: <InventoryIcon /> },
+  // For now, let's make the "Products" link go to the "Add Product" page
+  // Later, this might go to a product list page, which then has an "Add" button
+  // Or we can have a main "Products" item and sub-items for "List" and "Add"
+  { text: 'Add Product', path: '/products/add', icon: <AddCircleOutline /> },
+  { text: 'Product List', path: '/products', icon: <ShoppingCartIcon /> }, // Placeholder for Product List page (Module 8)
+  { text: 'Inventory', path: '/inventory', icon: <InventoryIcon /> }, // Placeholder path
 ]
 
 const secondaryNavItems = [{ text: 'Settings', path: '/settings', icon: <SettingsIcon /> }]
-
 const AdminLayout: React.FC = () => {
   const location = useLocation()
   const navigate = useNavigate()

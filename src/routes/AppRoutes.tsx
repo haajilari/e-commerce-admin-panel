@@ -2,18 +2,21 @@
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 
-import AdminLayout from '../layouts/AdminLayout/AdminLayout'
-import DashboardPage from '../pages/DashboardPage'
-import LoginPage from '../pages/LoginPage'
-import NotFoundPage from '../pages/NotFoundPage'
+import AdminLayout from '@/layouts/AdminLayout/AdminLayout'
+import DashboardPage from '@/pages/DashboardPage'
+import LoginPage from '@/pages/LoginPage'
+import NotFoundPage from '@/pages/NotFoundPage'
 import ProtectedRoute from './ProtectedRoute'
 
-// ... (other page imports if any)
+// Import product pages
+import AddProductPage from '@/pages/products/AddProductPage'
+import EditProductPage from '@/pages/products/EditProductPage'
+// We will create ProductListPage later
+// import ProductListPage from '@/pages/products/ProductListPage';
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Public Routes */}
       <Route path="/login" element={<LoginPage />} />
 
       {/* Protected Routes Wrapper */}
@@ -25,14 +28,11 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        {/* Child routes of AdminLayout are now automatically protected */}
         <Route index element={<DashboardPage />} />
-        {/* <Route path="products" element={<ProductListPage />} /> */}
-        {/* <Route path="orders" element={<OrderManagementPage />} /> */}
-        {/* <Route path="settings" element={<SettingsPage />} /> */}
-      </Route>
 
-      {/* Catch-all route for 404 Not Found pages */}
+        <Route path="products/add" element={<AddProductPage />} />
+        <Route path="products/edit/:productId" element={<EditProductPage />} />
+      </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
