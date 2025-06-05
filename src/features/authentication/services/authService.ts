@@ -35,8 +35,16 @@ const SIMULATION_DELAY = 1000 // 1 second delay to simulate network latency
 
 /**
  * Simulates a user login API call.
+ * Accepts user credentials and returns user profile and a token upon successful authentication.
+ *
  * @param credentials - The user's email and password.
- * @returns A Promise that resolves with AuthResponse on success, or rejects with an Error on failure.
+ * @returns A Promise that resolves with AuthResponse (user profile and token) on success.
+ * @rejects An Error if login fails due to invalid credentials or other issues.
+ *
+ * @example
+ * loginUser({ email: "user@example.com", password: "password123" })
+ * .then(response => console.log(response.user, response.token))
+ * .catch(error => console.error(error.message));
  */
 export const loginUser = (credentials: LoginCredentials): Promise<AuthResponse> => {
   console.log({ loginUser: credentials })

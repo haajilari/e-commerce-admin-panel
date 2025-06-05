@@ -43,7 +43,46 @@ interface ReusableTableProps<T> {
   onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
   rowsPerPageOptions?: number[] // Options for rows per page
 }
+/**
+ * Defines the structure for a column in the ReusableTable.
+ * @template T - The type of data for each row in the table.
+ */
+export interface ColumnDefinition<T> {
+  /** Unique identifier for the column, can be a key of T or a custom string. */
+  id: Extract<keyof T, string> | string
+  /** Text label displayed in the column header. */
+  label: string
+  /**
+   * Optional custom render function for the cell content.
+   * @param row - The data object for the current row.
+   * @param rowIndex - The index of the current row.
+   * @returns The ReactNode to be rendered in the cell.
+   */
+  render?: (row: T, rowIndex: number) => ReactNode
+  /** Optional minimum width for the column (e.g., 100, '100px'). */
+  minWidth?: number | string
+  /** Optional text alignment for the cell content. Defaults to 'left'. */
+  align?: 'left' | 'right' | 'center' | 'inherit' | 'justify'
+}
 
+/**
+ * Props for the ReusableTable component.
+ * @template T - The type of data for each row in the table. Requires an `id` property for row keys.
+ */
+interface ReusableTableProps<T extends { id?: any }> {
+  /** Array of data objects to display in the table. */
+  data: T[]
+  /** Array of column definitions that structure the table. */
+  columns: ColumnDefinition<T>[]
+  /** Optional flag to indicate if data is currently being loaded. */
+  isLoading?: boolean
+  /** Optional title to display above the table. Can be a string or a ReactNode. */
+  title?: string | ReactNode
+  // ... other props like onRowClick, renderRowActions, pagination props, etc. with TSDoc
+  /** Total number of items in the dataset (for all pages), used for pagination. */
+  totalItems: number
+  // ...
+}
 // Generic reusable table component
 const ReusableTable = <T extends { id?: any }>({
   data,
