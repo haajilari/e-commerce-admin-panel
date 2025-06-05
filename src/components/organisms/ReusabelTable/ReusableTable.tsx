@@ -1,6 +1,5 @@
 // src/components/organisms/ReusableTable/ReusableTable.tsx
-
-import React, { type JSX, type ReactNode } from 'react'
+import React, { type ReactNode, type ChangeEvent, type JSX } from 'react' // Added ChangeEvent
 import {
   Table,
   TableBody,
@@ -12,78 +11,53 @@ import {
   Typography,
   Box,
   CircularProgress,
-  TablePagination, // For table pagination
-  // TableSortLabel, // Reserved for future sorting features
+  TablePagination,
+  TableSortLabel,
+  TextField, // Import TextField for filter inputs
 } from '@mui/material'
+import { visuallyHidden } from '@mui/utils'
 
-// Defines each column's configuration
 export interface ColumnDefinition<T> {
-  id: Extract<keyof T, string> | string // Column key
-  label: string // Column header
-  render?: (row: T, rowIndex: number) => ReactNode // Optional custom renderer
+  id: Extract<keyof T, string> | string
+  label: string
+  render?: (row: T, rowIndex: number) => ReactNode
   minWidth?: number | string
   align?: 'left' | 'right' | 'center' | 'inherit' | 'justify'
+  sortable?: boolean
+  filterable?: boolean // New: To enable text filtering for this column
 }
 
-// Component props
-interface ReusableTableProps<T> {
-  data: T[] // Data to display
-  columns: ColumnDefinition<T>[] // Column configurations
-  isLoading?: boolean // Show loading indicator
-  title?: string | ReactNode // Optional title
-  onRowClick?: (row: T) => void // Row click handler
-  renderRowActions?: (row: T) => ReactNode // Optional action buttons column
-  emptyDataMessage?: string // Message shown when no data
+export interface SortConfig<T> {
+  key: keyof T | string
+  direction: 'asc' | 'desc'
+}
 
-  // Pagination props
-  totalItems: number // Total number of items (used by pagination)
-  rowsPerPage: number // Items per page
-  page: number // Current page (zero-based)
+interface ReusableTableProps<T> {
+  data: T[]
+  columns: ColumnDefinition<T>[]
+  isLoading?: boolean
+  title?: string | ReactNode
+  onRowClick?: (row: T) => void
+  renderRowActions?: (row: T) => ReactNode
+  emptyDataMessage?: string
+
+  // Pagination Props
+  totalItems: number
+  rowsPerPage: number
+  page: number
   onPageChange: (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => void
   onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
-  rowsPerPageOptions?: number[] // Options for rows per page
-}
-/**
- * Defines the structure for a column in the ReusableTable.
- * @template T - The type of data for each row in the table.
- */
-export interface ColumnDefinition<T> {
-  /** Unique identifier for the column, can be a key of T or a custom string. */
-  id: Extract<keyof T, string> | string
-  /** Text label displayed in the column header. */
-  label: string
-  /**
-   * Optional custom render function for the cell content.
-   * @param row - The data object for the current row.
-   * @param rowIndex - The index of the current row.
-   * @returns The ReactNode to be rendered in the cell.
-   */
-  render?: (row: T, rowIndex: number) => ReactNode
-  /** Optional minimum width for the column (e.g., 100, '100px'). */
-  minWidth?: number | string
-  /** Optional text alignment for the cell content. Defaults to 'left'. */
-  align?: 'left' | 'right' | 'center' | 'inherit' | 'justify'
+  rowsPerPageOptions?: number[]
+
+  // Sorting Props
+  sortConfig?: SortConfig<T> | null
+  onSortChange?: (sortKey: keyof T | string) => void
+
+  // New Column Filtering Props
+  columnFilters?: Record<string, string> // e.g., { name: "search term for name", sku: "search for sku" }
+  onColumnFilterChange?: (columnId: string, value: string) => void
 }
 
-/**
- * Props for the ReusableTable component.
- * @template T - The type of data for each row in the table. Requires an `id` property for row keys.
- */
-interface ReusableTableProps<T extends { id?: any }> {
-  /** Array of data objects to display in the table. */
-  data: T[]
-  /** Array of column definitions that structure the table. */
-  columns: ColumnDefinition<T>[]
-  /** Optional flag to indicate if data is currently being loaded. */
-  isLoading?: boolean
-  /** Optional title to display above the table. Can be a string or a ReactNode. */
-  title?: string | ReactNode
-  // ... other props like onRowClick, renderRowActions, pagination props, etc. with TSDoc
-  /** Total number of items in the dataset (for all pages), used for pagination. */
-  totalItems: number
-  // ...
-}
-// Generic reusable table component
 const ReusableTable = <T extends { id?: any }>({
   data,
   columns,
@@ -91,34 +65,39 @@ const ReusableTable = <T extends { id?: any }>({
   title,
   onRowClick,
   renderRowActions,
-  emptyDataMessage = 'No data available.',
-
-  // Pagination destructured
+  emptyDataMessage = 'No data available.', // English default
   totalItems,
   rowsPerPage,
   page,
   onPageChange,
   onRowsPerPageChange,
   rowsPerPageOptions = [5, 10, 25, 50],
+  sortConfig,
+  onSortChange,
+  columnFilters,
+  onColumnFilterChange, // New prop
 }: ReusableTableProps<T>): JSX.Element => {
-  // Gets a unique key for each row
-  const getRowKey = (row: T, index: number): string | number => {
-    return row.id || `row-${index}`
-  }
-
-  // Wraps pagination's row count change handler
+  // ... (getRowKey, handleRowsPerPageChange, createSortHandler remain the same) ...
+  const getRowKey = (row: T, index: number): string | number => row.id || `row-${index}`
   const handleRowsPerPageChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    if (onRowsPerPageChange) {
-      onRowsPerPageChange(event)
+    if (onRowsPerPageChange) onRowsPerPageChange(event)
+  }
+  const createSortHandler = (property: keyof T | string) => (event: React.MouseEvent<unknown>) => {
+    if (onSortChange) onSortChange(property)
+  }
+
+  const handleFilterInputChange = (columnId: string, event: ChangeEvent<HTMLInputElement>) => {
+    if (onColumnFilterChange) {
+      onColumnFilterChange(columnId, event.target.value)
     }
   }
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', mt: 2, mb: 2 }} elevation={2}>
       {title && (
-        <Box sx={{ p: 2 }}>
+        <Box sx={{ p: 2, borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}>
           {typeof title === 'string' ? (
             <Typography variant="h6" component="div">
               {title}
@@ -128,29 +107,92 @@ const ReusableTable = <T extends { id?: any }>({
           )}
         </Box>
       )}
-
       <TableContainer sx={{ maxHeight: 600 }}>
         <Table stickyHeader aria-label={typeof title === 'string' ? title : 'data table'}>
           <TableHead>
+            {/* Row for Column Headers and Sorting */}
             <TableRow>
               {columns.map((column) => (
                 <TableCell
-                  key={String(column.id)}
+                  key={`header-${String(column.id)}`}
                   align={column.align || 'left'}
                   style={{ minWidth: column.minWidth }}
-                  sx={{ fontWeight: 'bold', backgroundColor: 'grey.200' }}
+                  sx={{
+                    fontWeight: 'bold',
+                    backgroundColor: 'grey.100',
+                    borderBottom: '2px solid',
+                    borderColor: 'grey.300',
+                  }}
+                  sortDirection={sortConfig?.key === column.id ? sortConfig.direction : false}
                 >
-                  {column.label}
+                  {column.sortable && onSortChange ? (
+                    <TableSortLabel
+                      active={sortConfig?.key === column.id}
+                      direction={sortConfig?.key === column.id ? sortConfig.direction : 'asc'}
+                      onClick={createSortHandler(column.id)}
+                    >
+                      {column.label}
+                      {sortConfig?.key === column.id ? (
+                        <Box component="span" sx={visuallyHidden}>
+                          {sortConfig.direction === 'desc'
+                            ? 'sorted descending'
+                            : 'sorted ascending'}
+                        </Box>
+                      ) : null}
+                    </TableSortLabel>
+                  ) : (
+                    column.label
+                  )}
                 </TableCell>
               ))}
               {renderRowActions && (
-                <TableCell align="right" sx={{ fontWeight: 'bold', backgroundColor: 'grey.200' }}>
+                <TableCell
+                  align="right"
+                  sx={{
+                    fontWeight: 'bold',
+                    backgroundColor: 'grey.100',
+                    borderBottom: '2px solid',
+                    borderColor: 'grey.300',
+                  }}
+                >
                   Actions
                 </TableCell>
               )}
             </TableRow>
+
+            {/* NEW: Row for Column Filter Inputs */}
+            {onColumnFilterChange && ( // Only render filter row if handler is provided
+              <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                {columns.map((column) => (
+                  <TableCell key={`filter-${String(column.id)}`} sx={{ py: 0.5, px: 1 }}>
+                    {
+                      column.filterable ? (
+                        <TextField
+                          variant="standard" // Use standard or outlined, small size
+                          size="small"
+                          fullWidth
+                          placeholder={`Search ${column.label}...`}
+                          value={columnFilters?.[String(column.id)] || ''}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            handleFilterInputChange(String(column.id), e)
+                          }
+                          onClick={(e) => e.stopPropagation()} // Prevent row click if onRowClick is enabled
+                          InputProps={{ sx: { fontSize: '0.875rem' } }}
+                        />
+                      ) : null /* Empty cell for non-filterable columns */
+                    }
+                  </TableCell>
+                ))}
+                {
+                  renderRowActions && (
+                    <TableCell sx={{ py: 0.5, px: 1 }} />
+                  ) /* Empty cell for actions column */
+                }
+              </TableRow>
+            )}
           </TableHead>
           <TableBody>
+            {/* ... (isLoading, emptyDataMessage, data mapping for rows remains the same) ... */}
             {isLoading ? (
               <TableRow>
                 <TableCell
@@ -178,13 +220,16 @@ const ReusableTable = <T extends { id?: any }>({
                   hover={!!onRowClick}
                   onClick={() => onRowClick && onRowClick(row)}
                   key={getRowKey(row, rowIndex)}
-                  sx={{ cursor: onRowClick ? 'pointer' : 'default' }}
+                  sx={{
+                    cursor: onRowClick ? 'pointer' : 'default',
+                    '&:last-child td, &:last-child th': { border: 0 },
+                  }}
                 >
                   {columns.map((column) => {
                     const value = column.render
                       ? column.render(row, rowIndex)
                       : // @ts-ignore
-                        (row[column.id as keyof T] as ReactNode) || '–'
+                        ((row[column.id as keyof T] as ReactNode) ?? '–') // Use '??' for null/undefined check
 
                     return (
                       <TableCell
@@ -206,8 +251,7 @@ const ReusableTable = <T extends { id?: any }>({
           </TableBody>
         </Table>
       </TableContainer>
-
-      {/* Show pagination only if not loading and there is data */}
+      {/* ... (TablePagination remains the same) ... */}
       {!isLoading && data.length > 0 && (
         <TablePagination
           component="div"
@@ -217,8 +261,10 @@ const ReusableTable = <T extends { id?: any }>({
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleRowsPerPageChange}
           rowsPerPageOptions={rowsPerPageOptions}
-          // labelRowsPerPage="Rows per page:"
-          // labelDisplayedRows={({ from, to, count }) => `${from}–${to} of ${count !== -1 ? count : `more than ${to}`}`}
+          labelRowsPerPage="Rows per page:"
+          labelDisplayedRows={({ from, to, count }) =>
+            `${from}–${to} of ${count !== -1 ? count : `more than ${to}`}`
+          }
         />
       )}
     </Paper>
