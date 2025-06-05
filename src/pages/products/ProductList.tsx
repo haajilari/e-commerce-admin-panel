@@ -1,6 +1,7 @@
 // src/pages/products/ProductListPage.tsx
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+// ... (MUI imports and Icon imports remain the same)
 import {
   Container,
   Typography,
@@ -21,29 +22,37 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 
+import ReusableTable, {
+  type ColumnDefinition,
+  type SortConfig,
+} from '@/components/organisms/ReusabelTable/ReusableTable'
 import { type Product } from '@/features/products/types'
-import PageHeader from '@/components/molecules/PageHeader/PageHeader' // Using our PageHeader
-import { deleteProduct, getProducts } from '@/features/products/services/productServices'
-import type { ColumnDefinition } from '@/components/organisms/ReusabelTable/ReusableTable'
-import ReusableTable from '@/components/organisms/ReusabelTable/ReusableTable'
+import { getProducts, deleteProduct } from '@/features/products/services/productServices' // getProducts might need adjustment for client-side full fetch
+import PageHeader from '@/components/molecules/PageHeader/PageHeader'
 
 const ProductListPage: React.FC = () => {
   const navigate = useNavigate()
 
   const [products, setProducts] = useState<Product[]>([])
+  const [allProducts, setAllProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   // Pagination state
-  const [page, setPage] = useState(0) // 0-based index for MUI TablePagination
-  const [rowsPerPage, setRowsPerPage] = useState(10) // Default items per page
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
   const [totalProducts, setTotalProducts] = useState(0)
+  // totalProducts will now be derived from filtered/sorted data length for client-side pagination
 
-  // Delete confirmation dialog state
+  // Sorting state
+  const [sortConfig, setSortConfig] = useState<SortConfig<Product> | null>(null)
+
+  // Column Filtering state - NEW
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({})
+
+  // ... (delete confirmation and snackbar states remain the same) ...
   const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false)
   const [selectedProductIdToDelete, setSelectedProductIdToDelete] = useState<string | null>(null)
-
-  // Snackbar feedback state
   const [feedback, setFeedback] = useState<{
     open: boolean
     message: string
@@ -54,6 +63,25 @@ const ProductListPage: React.FC = () => {
     severity: 'success',
   })
 
+  // Fetch ALL products once for client-side filtering/sorting demonstration
+  // useEffect(() => {
+  //   constfetchAllProducts = async () => {
+  //     setIsLoading(true)
+  //     setError(null)
+  //     try {
+  //       // Modify getProducts in service to return all, or fetch with a large limit for this mock
+  //       // For this example, assume getProducts can return all if no pagination is heavily enforced by mock
+  //       const response = await getProducts({ page: 1, limit: 1000 }) // Fetch a large number to get "all" for mock
+  //       setAllProducts(response.products)
+  //     } catch (err: any) {
+  //       console.error('Failed to fetch products:', err)
+  //       setError(err.message || 'Error fetching product list.')
+  //     } finally {
+  //       setIsLoading(false)
+  //     }
+  //   }
+  //   fetchAllProducts()
+  // }, []) // Fetch only once on mount for client-side demo
   const fetchProducts = useCallback(async () => {
     setIsLoading(true)
     setError(null)
@@ -73,39 +101,104 @@ const ProductListPage: React.FC = () => {
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
+  // Column Filter Change Handler - NEW
+  const handleColumnFilterChange = useCallback((columnId: string, value: string) => {
+    setColumnFilters((prevFilters) => ({
+      ...prevFilters,
+      [columnId]: value,
+    }))
+    setPage(0) // Reset to first page when filters change
+  }, [])
 
+  // Sorting Handler
+  const handleSortChange = useCallback((sortKey: keyof Product | string) => {
+    setSortConfig((currentSortConfig) => {
+      let direction: 'asc' | 'desc' = 'asc'
+      if (
+        currentSortConfig &&
+        currentSortConfig.key === sortKey &&
+        currentSortConfig.direction === 'asc'
+      ) {
+        direction = 'desc'
+      }
+      return { key: sortKey, direction }
+    })
+    setPage(0) // Reset to first page when sort changes
+  }, [])
+
+  // Memoized processed products (filtering and sorting) - NEW / MODIFIED
+  const processedProducts = useMemo(() => {
+    let filteredItems = [...allProducts]
+
+    // Apply column filters
+    Object.entries(columnFilters).forEach(([columnId, filterValue]) => {
+      if (filterValue) {
+        // Only filter if there's a value
+        filteredItems = filteredItems.filter((item) => {
+          const itemValue = item[columnId as keyof Product]
+          if (itemValue === undefined || itemValue === null) return false
+          return String(itemValue).toLowerCase().includes(filterValue.toLowerCase())
+        })
+      }
+    })
+
+    // Apply sorting
+    if (sortConfig !== null) {
+      filteredItems.sort((a, b) => {
+        const valA = a[sortConfig.key as keyof Product]
+        const valB = b[sortConfig.key as keyof Product]
+        let comparison = 0
+        if (typeof valA === 'number' && typeof valB === 'number') {
+          comparison = valA - valB
+        } else if (typeof valA === 'string' && typeof valB === 'string') {
+          comparison = valA.localeCompare(valB, 'en', { sensitivity: 'base' })
+        } else if (typeof valA === 'boolean' && typeof valB === 'boolean') {
+          comparison = valA === valB ? 0 : valA ? -1 : 1
+        }
+        return sortConfig.direction === 'asc' ? comparison : comparison * -1
+      })
+    }
+    return filteredItems
+  }, [allProducts, columnFilters, sortConfig])
+
+  // Memoized paginated products - NEW
+  const paginatedProducts = useMemo(() => {
+    const startIndex = page * rowsPerPage
+    return processedProducts.slice(startIndex, startIndex + rowsPerPage)
+  }, [processedProducts, page, rowsPerPage])
+
+  // Update totalItems for pagination based on filtered data
+  const currentTotalItems = processedProducts.length
+
+  // ... (handleChangePage, handleChangeRowsPerPage, CRUD handlers, snackbar handler remain similar,
+  // but fetchProducts for delete success should now re-trigger fetching all or re-filter client side)
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage)
   }
-
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10))
-    setPage(0) // Reset to first page when rows per page changes
+    setPage(0)
   }
-
   const handleAddProduct = () => {
     navigate('/products/add')
   }
-
   const handleEditProduct = (productId: string) => {
     navigate(`/products/edit/${productId}`)
   }
-
   const handleDeleteClick = (productId: string) => {
     setSelectedProductIdToDelete(productId)
     setConfirmDeleteDialogOpen(true)
   }
-
   const handleDeleteConfirm = async () => {
     if (selectedProductIdToDelete) {
-      setIsLoading(true)
+      // For client-side demo, we filter out the product from allProducts
+      // In a real app, you'd call the API then refetch OR update client state optimistically/after confirm.
       try {
-        await deleteProduct(selectedProductIdToDelete)
-        setFeedback({ open: true, message: 'Product deleted successfully.', severity: 'success' })
-        setSelectedProductIdToDelete(null)
-        fetchProducts() // Refresh the list
+        await deleteProduct(selectedProductIdToDelete) // Still call mock API
+        setAllProducts((prev) => prev.filter((p) => p.id !== selectedProductIdToDelete)) // Update client-side master list
+        setFeedback({ open: true, message: 'Product successfully deleted.', severity: 'success' })
       } catch (err: any) {
         setFeedback({
           open: true,
@@ -113,37 +206,42 @@ const ProductListPage: React.FC = () => {
           severity: 'error',
         })
       } finally {
-        setIsLoading(false)
+        setSelectedProductIdToDelete(null)
         setConfirmDeleteDialogOpen(false)
+        // No need to setIsLoading here as it's a client-side list update mostly
       }
     }
   }
-
   const handleDeleteCancel = () => {
-    setSelectedProductIdToDelete(null)
+    /* ... */ setSelectedProductIdToDelete(null)
     setConfirmDeleteDialogOpen(false)
   }
-
-  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'clickaway') {
-      return
-    }
-    setFeedback({ ...feedback, open: false })
+  const handleCloseSnackbar = () => {
+    /* ... */ setFeedback({ ...feedback, open: false })
   }
 
-  // Define columns for the ReusableTable
+  // Define columns - Mark some as filterable
   const columns: ColumnDefinition<Product>[] = [
-    { id: 'name', label: 'Product Name', minWidth: 170 },
-    { id: 'sku', label: 'SKU', minWidth: 100 },
+    { id: 'name', label: 'Product Name', minWidth: 170, sortable: true, filterable: true },
+    { id: 'sku', label: 'SKU', minWidth: 100, sortable: true, filterable: true },
     {
       id: 'price',
-      label: 'Price (Toman)',
+      label: 'Price (USD)',
       minWidth: 100,
       align: 'right',
-      render: (row) => row.price.toLocaleString('fa-IR'),
+      render: (row) => `$${row.price.toFixed(2)}`,
+      sortable: true,
+      filterable: true /* Filtering numbers as text for now */,
     },
-    { id: 'stockQuantity', label: 'Stock', minWidth: 70, align: 'center' },
-    { id: 'category', label: 'Category', minWidth: 100 },
+    {
+      id: 'stockQuantity',
+      label: 'Stock',
+      minWidth: 70,
+      align: 'center',
+      sortable: true,
+      filterable: true /* Filtering numbers as text for now */,
+    },
+    { id: 'category', label: 'Category', minWidth: 100, sortable: true, filterable: true },
     {
       id: 'isActive',
       label: 'Status',
@@ -156,6 +254,8 @@ const ProductListPage: React.FC = () => {
           size="small"
         />
       ),
+      sortable:
+        true /* Filtering booleans as text 'true'/'false' might be tricky, or needs specific UI */,
     },
   ]
 
@@ -163,7 +263,7 @@ const ProductListPage: React.FC = () => {
     <Container maxWidth="lg">
       <PageHeader
         title="Product List"
-        subtitle="View and manage all store products."
+        subtitle="View and manage all e-commerce products."
         actions={
           <Button
             variant="contained"
@@ -182,18 +282,17 @@ const ProductListPage: React.FC = () => {
       )}
 
       <ReusableTable<Product>
-        title="Product Table"
-        data={products}
+        title="Products Table"
+        data={products} // Use paginatedProducts
         columns={columns}
-        isLoading={isLoading}
-        emptyDataMessage="No products found. Start by adding a new one."
-        renderRowActions={(row) => (
+        isLoading={isLoading && allProducts.length === 0} // Show loading only on initial full load
+        emptyDataMessage="No products match your filters, or no products available."
+        renderRowActions={(row /* ... (same as before) ... */) => (
           <Box sx={{ display: 'flex', gap: 0.5 }}>
             <IconButton
               size="small"
               color="primary"
               onClick={() => row.id && handleEditProduct(row.id)}
-              aria-label={`Edit product ${row.name}`}
               title="Edit"
             >
               <EditIcon fontSize="small" />
@@ -202,44 +301,41 @@ const ProductListPage: React.FC = () => {
               size="small"
               color="error"
               onClick={() => row.id && handleDeleteClick(row.id)}
-              aria-label={`Delete product ${row.name}`}
               title="Delete"
             >
               <DeleteIcon fontSize="small" />
             </IconButton>
           </Box>
         )}
-        totalItems={totalProducts}
+        // Pagination props
+        totalItems={currentTotalItems} // Use length of filtered and sorted data
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
+        // Sorting props
+        sortConfig={sortConfig}
+        onSortChange={handleSortChange}
+        // Column Filtering props - NEW
+        columnFilters={columnFilters}
+        onColumnFilterChange={handleColumnFilterChange}
       />
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={confirmDeleteDialogOpen}
-        onClose={handleDeleteCancel}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">Confirm Product Deletion</DialogTitle>
+      {/* ... (Delete Confirmation Dialog and Snackbar remain the same) ... */}
+      <Dialog open={confirmDeleteDialogOpen} onClose={handleDeleteCancel}>
+        <DialogTitle>Confirm Product Deletion</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
+          <DialogContentText>
             Are you sure you want to delete this product? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteCancel} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+          <Button onClick={handleDeleteCancel}>Cancel</Button>
+          <Button onClick={handleDeleteConfirm} color="error">
             Delete
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Feedback Snackbar */}
       <Snackbar
         open={feedback.open}
         autoHideDuration={6000}
