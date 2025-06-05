@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    // "baseUrl": .",
+    "baseUrl": ".",
     "paths": { "@/*": ["src/*"] },
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2020",
@@ -8,7 +8,12 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-
+    "types": [
+      "vite/client",
+      "@testing-library/jest-dom", // For jest-dom matchers
+      "vitest/globals" // If you use globals: true in Vitest config
+      // Or "vitest/importMeta" if you don't use globals and prefer importing from 'vitest'
+    ],
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
