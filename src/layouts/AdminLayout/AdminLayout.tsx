@@ -13,30 +13,22 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Divider from '@mui/material/Divider'
 import Button from '@mui/material/Button' // Logout button
-import IconButton from '@mui/material/IconButton' // Icon button (not used here)
 import LogoutIcon from '@mui/icons-material/Logout'
 
-import DashboardIcon from '@mui/icons-material/Dashboard'
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
-import InventoryIcon from '@mui/icons-material/Inventory'
-import SettingsIcon from '@mui/icons-material/Settings'
 import useAuthStore from '../../features/authentication/store/authStore'
 import { logoutUser as apiLogoutUser } from '../../features/authentication/services/authService'
-import { AddCircleOutline } from '@mui/icons-material'
+import { AddCircleOutline, Dashboard, Inventory, Settings, ViewList } from '@mui/icons-material'
 
 const DRAWER_WIDTH = 240
 
 const navItems = [
-  { text: 'Dashboard', path: '/', icon: <DashboardIcon /> },
-  // For now, let's make the "Products" link go to the "Add Product" page
-  // Later, this might go to a product list page, which then has an "Add" button
-  // Or we can have a main "Products" item and sub-items for "List" and "Add"
+  { text: 'Dashboard', path: '/', icon: <Dashboard /> },
+  { text: 'Product List', path: '/products', icon: <ViewList /> }, // Updated path and icon
   { text: 'Add Product', path: '/products/add', icon: <AddCircleOutline /> },
-  { text: 'Product List', path: '/products', icon: <ShoppingCartIcon /> }, // Placeholder for Product List page (Module 8)
-  { text: 'Inventory', path: '/inventory', icon: <InventoryIcon /> }, // Placeholder path
+  { text: 'Inventory', path: '/inventory', icon: <Inventory /> }, // Placeholder path
 ]
 
-const secondaryNavItems = [{ text: 'Settings', path: '/settings', icon: <SettingsIcon /> }]
+const secondaryNavItems = [{ text: 'Settings', path: '/settings', icon: <Settings /> }]
 const AdminLayout: React.FC = () => {
   const location = useLocation()
   const navigate = useNavigate()
